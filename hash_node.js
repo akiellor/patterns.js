@@ -1,24 +1,24 @@
 var crypto = require('crypto');
 
-function nodeKey(node) {
-  return node.start + ":" + node.end;
-}
-
 function hash(string) {
   var shasum = crypto.createHash('sha1');
   shasum.update(string);
   return shasum.digest('hex');
 }
 
-function hashNodeCollection(hashes, nodeCollection) {
-  var content = "";
-  nodeCollection.forEach(function(node) {
-    content = content + hashes[nodeKey(node)];
-  });
-  return hash(content);
-}
+function hashNode(prefix, hashes, node) {
+  function nodeKey(node) {
+    return prefix + ":" + node.start + ":" + node.end;
+  }
 
-function hashNode(hashes, node) {
+  function hashNodeCollection(hashes, nodeCollection) {
+    var content = "";
+    nodeCollection.forEach(function(node) {
+      content = content + hashes[nodeKey(node)];
+    });
+    return hash(content);
+  }
+
   var hashers = {
     Literal: function(node) {
       return hash(node.raw);

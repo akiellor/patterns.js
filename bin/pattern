@@ -1,41 +1,34 @@
 #!/usr/bin/env node
 
 var falafel = require('falafel');
-var stringify = require('json-stringify-safe');
+var Promise = require('promise');
+var glob = Promise.denodeify(require('glob'));
+var read = Promise.denodeify(require('fs').readFile);
 var hashNode = require(__dirname + '/../hash_node');
 
-process.stdin.setEncoding('utf8');
+var hashes = {};
+var counter = {};
+var nodes = {};
 
-var stream = process.stdin;
-var data = "";
-stream.on('readable', function() {
-  var chunk = process.stdin.read();
-  if (chunk !== null) {
-    data = data + chunk;
-  }
-});
-
-stream.on('end', function() {
-  var keys = [];
-  var hashes = {};
-  var counter = {};
-  var nodes = {};
-
-  falafel(data, {
-    locations: true
-  }, function(node) {
-    var hash = hashNode(hashes, node);
-    nodes[hash] = nodes[hash] || [];
-    nodes[hash].push(node);
-    counter[hash] = counter[hash] || 0;
-    counter[hash] = counter[hash] + 1;
-  });
-
+glob(process.argv[2], {}).then(function(files) {
+  return Promise.all(files.map(function(file) {
+    return read(file).then(function(content) {
+      falafel(content.toString(), {locations: true}, function(node) {
+        var hash = hashNode(file, hashes, node);
+        nodes[hash] = nodes[hash] || [];
+        nodes[hash].push(node);
+        counter[hash] = counter[hash] || 0;
+        counter[hash] = counter[hash] + 1;
+      });
+    });
+  }));
+}).then(function(result) {
   Object.keys(nodes).forEach(function(hash) {
-    if (counter[hash] > 1 && nodes[hash][0].source().length > 300) {
+    if (counter[hash] > 1 && nodes[hash][0].source().length > 100) {
       console.log(hash);
     }
   });
+}).catch(function(err) {
+  console.log(err);
+  console.log(err.stack);
 });
-
-

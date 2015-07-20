@@ -14,7 +14,9 @@
   "license": "MIT",
   "dependencies": {
     "falafel": "^1.2.0",
-    "json-stringify-safe": "^5.0.1"
+    "glob": "^5.0.14",
+    "json-stringify-safe": "^5.0.1",
+    "promise": "^7.0.3"
   },
   "devDependencies": {
     "jsfmt": "^0.4.1"
