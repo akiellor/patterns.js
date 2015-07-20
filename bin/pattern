@@ -1,0 +1,41 @@
+#!/usr/bin/env node
+
+var falafel = require('falafel');
+var stringify = require('json-stringify-safe');
+var hashNode = require(__dirname + '/../hash_node');
+
+process.stdin.setEncoding('utf8');
+
+var stream = process.stdin;
+var data = "";
+stream.on('readable', function() {
+  var chunk = process.stdin.read();
+  if (chunk !== null) {
+    data = data + chunk;
+  }
+});
+
+stream.on('end', function() {
+  var keys = [];
+  var hashes = {};
+  var counter = {};
+  var nodes = {};
+
+  falafel(data, {
+    locations: true
+  }, function(node) {
+    var hash = hashNode(hashes, node);
+    nodes[hash] = nodes[hash] || [];
+    nodes[hash].push(node);
+    counter[hash] = counter[hash] || 0;
+    counter[hash] = counter[hash] + 1;
+  });
+
+  Object.keys(nodes).forEach(function(hash) {
+    if (counter[hash] > 1 && nodes[hash][0].source().length > 300) {
+      console.log(hash);
+    }
+  });
+});
+
+
