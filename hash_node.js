@@ -157,6 +157,34 @@ function hashNode(prefix, hashes, node) {
     },
     DebuggerStatement: function(node) {
       return hash(node.type);
+    },
+    CatchClause: function(node) {
+      return hash(
+        node.type +
+        hashes[nodeKey(node.param)] +
+        hashes[nodeKey(node.body)]
+      );
+    },
+    TryStatement: function(node) {
+      return hash(
+        node.type +
+        hashes[nodeKey(node.block)] +
+        hashes[nodeKey(node.handler)]
+      );
+    },
+    SwitchCase: function(node) {
+      return hash(
+        node.type +
+        (node.consequent ? hashes[nodeKey(node.consequent)] : "") +
+        (node.test ? hashes[nodeKey(node.test)] : "")
+      );
+    },
+    SwitchStatement: function(node) {
+      return hash(
+        node.type +
+        hashes[nodeKey(node.discriminant)] +
+        hashNodeCollection(hashes, node.cases)
+      );
     }
   };
 
