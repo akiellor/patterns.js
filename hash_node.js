@@ -23,6 +23,10 @@ function hashNode(prefix, hashes, node) {
     return hashes[nodeKey(node)].hash;
   }
 
+  function getChildHashes(nodeCollection) {
+    return nodeCollection.map(getHash);
+  }
+
   var hashers = {
     Literal: function(node) {
       return {
@@ -50,34 +54,31 @@ function hashNode(prefix, hashes, node) {
     VariableDeclaration: function(node) {
       return {
         hash: hash(node.type + hashNodeCollection(hashes, node.declarations)),
-        children: [hashNodeCollection(hashes, node.declarations)]
+        children: getChildHashes(node.declarations)
       };
     },
     Program: function(node) {
       return {
         hash: hash(node.type + hashNodeCollection(hashes, node.body)),
-        children: [hashNodeCollection(hashes, node.body)]
+        children: getChildHashes(node.body)
       };
     },
     BlockStatement: function(node) {
       return {
         hash: hash(node.type + hashNodeCollection(hashes, node.body)),
-        children: [hashNodeCollection(hashes, node.body)]
+        children: getChildHashes(node.body)
       };
     },
     FunctionDeclaration: function(node) {
       return {
         hash: hash(node.type + hashNodeCollection(hashes, node.params) + getHash(node.body)),
-        children: [
-          hashNodeCollection(hashes, node.params),
-          getHash(node.body)
-        ]
+        children: getChildHashes(node.params).concat([getHash(node.body)])
       };
     },
     ArrayExpression: function(node) {
       return {
         hash: hash(node.type + hashNodeCollection(hashes, node.elements)),
-        children: [hashNodeCollection(hashes, node.elements)]
+        children: getChildHashes(node.elements)
       };
     },
     ExpressionStatement: function(node) {
@@ -101,10 +102,7 @@ function hashNode(prefix, hashes, node) {
     CallExpression: function(node) {
       return {
         hash: hash(node.type + getHash(node.callee) + hashNodeCollection(hashes, node.arguments)),
-        children: [
-          getHash(node.callee),
-          hashNodeCollection(hashes, node.arguments)
-        ]
+        children: getChildHashes(node.arguments).concat([getHash(node.callee)])
       };
     },
     AssignmentExpression: function(node) {
@@ -120,10 +118,7 @@ function hashNode(prefix, hashes, node) {
     FunctionExpression: function(node) {
       return {
         hash: hash(node.type + getHash(node.body) + hashNodeCollection(hashes, node.params)),
-        children: [
-          getHash(node.body),
-          hashNodeCollection(hashes, node.params)
-        ]
+        children: getChildHashes(node.params).concat([getHash(node.body)])
       };
     },
     Property: function(node) {
@@ -138,13 +133,13 @@ function hashNode(prefix, hashes, node) {
     ObjectExpression: function(node) {
       return {
         hash: hash(node.type + hashNodeCollection(hashes, node.properties)),
-        children: [hashNodeCollection(hashes, node.properties)]
+        children: getChildHashes(node.properties)
       };
     },
     ReturnStatement: function(node) {
       return {
         hash: hash(node.type + (node.argument ? getHash(node.argument) : '')),
-        children: [node.argument ? getHash(node.argument) : '']
+        children: (node.argument ? [getHash(node.argument)] : [])
       };
     },
     ForInStatement: function(node) {
@@ -160,10 +155,7 @@ function hashNode(prefix, hashes, node) {
     NewExpression: function(node) {
       return {
         hash: hash(node.type + getHash(node.callee) + hashNodeCollection(hashes, node.arguments)),
-        children: [
-          getHash(node.callee),
-          hashNodeCollection(hashes, node.arguments)
-        ]
+        children: getChildHashes(node.arguments).concat([getHash(node.callee)])
       };
     },
     ThrowStatement: function(node) {
@@ -208,8 +200,7 @@ function hashNode(prefix, hashes, node) {
         children: [
           getHash(node.test),
           getHash(node.consequent),
-          node.alternate ? getHash(node.alternate) : ''
-        ]
+        ].concat(node.alternate ? [getHash(node.alternate)] : [])
       };
     },
     UnaryExpression: function(node) {
@@ -247,7 +238,7 @@ function hashNode(prefix, hashes, node) {
     SequenceExpression: function(node) {
       return {
         hash: hash(node.type + hashNodeCollection(hashes, node.expressions)),
-        children: [hashNodeCollection(hashes, node.expressions)]
+        children: getChildHashes(node.expressions)
       };
     },
     EmptyStatement: function(node) {
@@ -286,10 +277,7 @@ function hashNode(prefix, hashes, node) {
     SwitchStatement: function(node) {
       return {
         hash: hash(node.type + getHash(node.discriminant) + hashNodeCollection(hashes, node.cases)),
-        children: [
-          getHash(node.discriminant),
-          hashNodeCollection(hashes, node.cases)
-        ]
+        children: getChildHashes(node.cases).concat([getHash(node.discriminant)])
       };
     }
   };
