@@ -14,7 +14,9 @@ glob(process.argv[2], {}).then(function(files) {
   return Promise.all(files.map(function(file) {
     return read(file).then(function(content) {
       falafel(content.toString(), {locations: true}, function(node) {
-        var hash = hashNode(file, hashes, node);
+        var result = hashNode(file, hashes, node);
+        var hash = result.hash;
+        var children = result.children;
         nodes[hash] = nodes[hash] || [];
         nodes[hash].push(node);
         counter[hash] = counter[hash] || 0;
