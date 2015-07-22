@@ -5,6 +5,7 @@ var Promise = require('promise');
 var glob = Promise.denodeify(require('glob'));
 var read = Promise.denodeify(require('fs').readFile);
 var hashNode = require(__dirname + '/../hash_node');
+var Hashset = require('hashset.js');
 
 var hashes = {};
 var counter = {};
@@ -42,25 +43,21 @@ getFileNames(process.argv.slice(2)).then(function(files) {
     });
   }));
 }).then(function(result) {
-  var covered = {};
+  var covered = new Hashset(function(i) { return i; });
   results.forEach(function(result) {
     var hash = result.hash;
-    if (!covered[hash] && counter[hash] > 1 && nodes[hash][0].node.source().length > 100) {
+    if (!covered.has(hash) && counter[hash] > 1 && nodes[hash][0].node.source().length > 100) {
       console.log(hash);
       console.log(nodes[hash][0].node.source());
       nodes[hash].forEach(function(entry) {
         console.log(entry.file + ":" + entry.node.loc.start.line);
       });
-      result.children.forEach(function(child) {
-        covered[child] = true;
-      });
-    } else if (covered[hash]) {
-      result.children.forEach(function(child) {
-        covered[child] = true;
-      });
+      covered.addArray(result.children);
+    } else if (covered.has(hash)) {
+      covered.addArray(result.children);
     }
 
-    covered[hash] = true;
+    covered.add(hash);
   });
 }).catch(function(err) {
   console.log(err);
