@@ -10,7 +10,17 @@ var hashes = {};
 var counter = {};
 var nodes = {};
 
-glob(process.argv[2], {}).then(function(files) {
+function getFileNames(patterns) {
+  return Promise.all(patterns.map(function(pattern) {
+    return glob(pattern, {})
+  })).then(function(filesOfFiles) {
+    return filesOfFiles.reduce(function(memo, files) {
+      return memo.concat(files);
+    }, []);
+  });
+}
+
+getFileNames(process.argv.slice(2)).then(function(files) {
   return Promise.all(files.map(function(file) {
     return read(file).then(function(content) {
       falafel(content.toString(), {locations: true}, function(node) {
