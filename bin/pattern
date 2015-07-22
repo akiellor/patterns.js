@@ -9,6 +9,7 @@ var hashNode = require(__dirname + '/../hash_node');
 var hashes = {};
 var counter = {};
 var nodes = {};
+var results = [];
 
 function getFileNames(patterns) {
   return Promise.all(patterns.map(function(pattern) {
@@ -23,24 +24,43 @@ function getFileNames(patterns) {
 getFileNames(process.argv.slice(2)).then(function(files) {
   return Promise.all(files.map(function(file) {
     return read(file).then(function(content) {
-      falafel(content.toString(), {locations: true}, function(node) {
+      falafel(content.toString(), {
+        locations: true
+      }, function(node) {
         var result = hashNode(file, hashes, node);
+        results.unshift(result);
         var hash = result.hash;
         nodes[hash] = nodes[hash] || [];
-        nodes[hash].push({file: file, node: node, result: result});
+        nodes[hash].push({
+          file: file,
+          node: node,
+          result: result
+        });
         counter[hash] = counter[hash] || 0;
         counter[hash] = counter[hash] + 1;
       });
     });
   }));
 }).then(function(result) {
-  Object.keys(nodes).forEach(function(hash) {
-    if (counter[hash] > 1 && nodes[hash][0].node.source().length > 300) {
+  var covered = {};
+  results.forEach(function(result) {
+    var hash = result.hash;
+    if (!covered[hash] && counter[hash] > 1 && nodes[hash][0].node.source().length > 100) {
       console.log(hash);
+      console.log(nodes[hash][0].node.source());
       nodes[hash].forEach(function(entry) {
         console.log(entry.file + ":" + entry.node.loc.start.line);
       });
+      result.children.forEach(function(child) {
+        covered[child] = true;
+      });
+    } else if (covered[hash]) {
+      result.children.forEach(function(child) {
+        covered[child] = true;
+      });
     }
+
+    covered[hash] = true;
   });
 }).catch(function(err) {
   console.log(err);
