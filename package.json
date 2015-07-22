@@ -20,6 +20,8 @@
     "promise": "^7.0.3"
   },
   "devDependencies": {
-    "jsfmt": "^0.4.1"
+    "chai": "^3.2.0",
+    "jsfmt": "^0.4.1",
+    "mocha": "^2.2.5"
   }
 }
