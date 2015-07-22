@@ -26,9 +26,8 @@ getFileNames(process.argv.slice(2)).then(function(files) {
       falafel(content.toString(), {locations: true}, function(node) {
         var result = hashNode(file, hashes, node);
         var hash = result.hash;
-        var children = result.children;
         nodes[hash] = nodes[hash] || [];
-        nodes[hash].push({file: file, node: node});
+        nodes[hash].push({file: file, node: node, result: result});
         counter[hash] = counter[hash] || 0;
         counter[hash] = counter[hash] + 1;
       });
@@ -38,8 +37,8 @@ getFileNames(process.argv.slice(2)).then(function(files) {
   Object.keys(nodes).forEach(function(hash) {
     if (counter[hash] > 1 && nodes[hash][0].node.source().length > 300) {
       console.log(hash);
-      nodes[hash].forEach(function(node) {
-        console.log(node.file + ":" + node.node.loc.start.line);
+      nodes[hash].forEach(function(entry) {
+        console.log(entry.file + ":" + entry.node.loc.start.line);
       });
     }
   });
