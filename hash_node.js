@@ -236,7 +236,10 @@ function hashNode(prefix, hashes, node) {
       };
     },
     BreakStatement: function(node) {
-      return hash(node.type);
+      return {
+        hash: hash(node.type),
+        children: []
+      }
     },
     SequenceExpression: function(node) {
       return {
@@ -245,10 +248,16 @@ function hashNode(prefix, hashes, node) {
       };
     },
     EmptyStatement: function(node) {
-      return hash(node.type);
+      return {
+        hash: hash(node.type),
+        children: []
+      };
     },
     DebuggerStatement: function(node) {
-      return hash(node.type);
+      return {
+        hash: hash(node.type),
+        children: []
+      };
     },
     CatchClause: function(node) {
       return {
