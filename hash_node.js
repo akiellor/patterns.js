@@ -30,13 +30,13 @@ function hashNode(prefix, hashes, node) {
   var hashers = {
     Literal: function(node) {
       return {
-        hash: hash(node.raw),
+        hash: hash(node.type + node.raw),
         children: []
       };
     },
     Identifier: function(node) {
       return {
-        hash: hash(node.type),
+        hash: hash(node.type + node.name),
         children: []
       };
     },
@@ -88,7 +88,10 @@ function hashNode(prefix, hashes, node) {
       };
     },
     ThisExpression: function(node) {
-      return hash(node.type);
+      return {
+        hash: hash(node.type),
+        children: []
+      }
     },
     MemberExpression: function(node) {
       return {
