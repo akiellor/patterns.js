@@ -18,7 +18,7 @@ glob(process.argv[2], {}).then(function(files) {
         var hash = result.hash;
         var children = result.children;
         nodes[hash] = nodes[hash] || [];
-        nodes[hash].push(node);
+        nodes[hash].push({file: file, node: node});
         counter[hash] = counter[hash] || 0;
         counter[hash] = counter[hash] + 1;
       });
@@ -26,8 +26,11 @@ glob(process.argv[2], {}).then(function(files) {
   }));
 }).then(function(result) {
   Object.keys(nodes).forEach(function(hash) {
-    if (counter[hash] > 1 && nodes[hash][0].source().length > 100) {
+    if (counter[hash] > 1 && nodes[hash][0].node.source().length > 300) {
       console.log(hash);
+      nodes[hash].forEach(function(node) {
+        console.log(node.file + ":" + node.node.loc.start.line);
+      });
     }
   });
 }).catch(function(err) {
