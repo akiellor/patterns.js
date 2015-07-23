@@ -53,6 +53,32 @@ describe('filter results', function() {
       }
     });
   });
+
+  it('should remove results which are already covered by parent', function() {
+    var filtered = filterResults({
+      '123': {
+        hash: '123',
+        children: ['456'],
+        size: 301,
+        locations: ['foo.js:1', 'bar.js:2']
+      },
+      '456': {
+        hash: '456',
+        children: [],
+        size: 300,
+        locations: ['foo.js:1', 'bar.js:2']
+      }
+    });
+
+    expect(filtered).to.deep.equal({
+      '123': {
+        hash: '123',
+        children: ['456'],
+        size: 301,
+        locations: ['foo.js:1', 'bar.js:2']
+      }
+    });
+  });
 });
 
 
