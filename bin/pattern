@@ -29,6 +29,11 @@ function hashFiles(files) {
   }));
 }
 
+function tap(value) {
+  console.log(JSON.stringify(value));
+  return value;
+}
+
 getFileNames(process.argv.slice(2))
 .then(hashFiles)
 .then(mergeResults)

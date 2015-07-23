@@ -7,19 +7,41 @@ describe('merge results', function() {
       {
         file: 'foo.js',
         tree: {
-          '123': {hash: "123", children: [], count: 5},
-          '456': {hash: "456", children: [], count: 7}
+          '123': {
+            hash: "123",
+            children: [],
+            locations: [1]
+          },
+          '456': {
+            hash: "456",
+            children: [],
+            locations: [2]
+          }
         }
       },
       {
         file: 'bar.js',
-        tree: {'123': {hash: "123", children: [], count: 7}}
+        tree: {
+          '123': {
+            hash: "123",
+            children: [],
+            locations: [1]
+          }
+        }
       }
     ]);
 
     expect(merged).to.deep.equal({
-      '123': {hash: '123', children: [], count: 12, files: ['foo.js', 'bar.js']},
-      '456': {hash: '456', children: [], count: 7, files: ['foo.js']}
+      '123': {
+        hash: '123',
+        children: [],
+        locations: ['foo.js:1', 'bar.js:1']
+      },
+      '456': {
+        hash: '456',
+        children: [],
+        locations: ['foo.js:2']
+      }
     });
   });
 });

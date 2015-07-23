@@ -10,10 +10,10 @@ module.exports = function hashAst(name, source) {
     var result = hashNode(name, hashes, node);
     if (!results[result.hash]) {
       results[result.hash] = result;
-      results[result.hash].count = 1;
+      results[result.hash].locations = [node.loc.start.line];
       results[result.hash].size = node.source().length;
     } else {
-      results[result.hash].count += 1;
+      results[result.hash].locations.push(node.loc.start.line);
     }
   });
   return results;

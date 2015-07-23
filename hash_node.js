@@ -279,11 +279,8 @@ function hashNode(prefix, hashes, node) {
     },
     SwitchCase: function(node) {
       return {
-        hash: hash(node.type + (node.consequent ? getHash(node.consequent) : '') + (node.test ? getHash(node.test) : '')),
-        children: [
-          node.consequent ? getHash(node.consequent) : '',
-          node.test ? getHash(node.test) : ''
-        ]
+        hash: hash(node.type + hashNodeCollection(hashes, node.consequent) + (node.test ? getHash(node.test) : '')),
+        children: getChildHashes(node.consequent).concat(node.test ? [getHash(node.test)] : [])
       };
     },
     SwitchStatement: function(node) {
