@@ -11,7 +11,7 @@ module.exports = function hashAst(name, source) {
     if (!results[result.hash]) {
       results[result.hash] = result;
       results[result.hash].locations = [node.loc.start.line];
-      results[result.hash].size = node.source().length;
+      results[result.hash].source = node.source();
     } else {
       results[result.hash].locations.push(node.loc.start.line);
     }

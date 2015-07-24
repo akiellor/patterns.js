@@ -1,6 +1,6 @@
 module.exports = function filterResults(results) {
   var filtered = Object.keys(results).reduce(function(memo, key) {
-    if (results[key].locations.length > 1 && results[key].size >= 300) {
+    if (results[key].locations.length > 1 && results[key].source.length >= 300) {
       memo[key] = results[key];
     }
     return memo;
