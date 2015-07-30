@@ -288,6 +288,19 @@ function hashNode(prefix, hashes, node) {
         hash: hash(node.type + getHash(node.discriminant) + hashNodeCollection(hashes, node.cases)),
         children: getChildHashes(node.cases).concat([getHash(node.discriminant)])
       };
+    },
+    WhileStatement: function(node) {
+      return {
+        hash: hash(
+          node.type +
+          getHash(node.test) +
+          getHash(node.body)
+        ),
+        children: [
+          getHash(node.test),
+          getHash(node.body)
+        ]
+      };
     }
   };
 
