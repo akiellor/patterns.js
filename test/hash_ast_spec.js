@@ -50,10 +50,14 @@ describe('hash ast', function() {
   });
 
   it('ast hashed twice should be the same', function() {
-    var ast = generate('FunctionDeclaration');
+    var ast = generate('BinaryExpression');
     var result = escodegen.generate(ast);
+    console.log(result);
 
     expect(hashAst('stdin', result)).to.deep.equal(hashAst('stdin', result));
+  });
+
+  it('ast contained in other ast should contain the same children', function() {
   });
 
   function generate(type) {
@@ -62,7 +66,6 @@ describe('hash ast', function() {
       'Statement': ['WhileStatement', 'VariableDeclaration', 'FunctionDeclaration', 'ExpressionStatement', 'ForInStatement', 'ForStatement', 'IfStatement']
     };
 
-    // name {prop: type, prop, type}
     function generator(name, blueprint, extras) {
       extras = extras || {};
       var deps = [];
@@ -92,47 +95,42 @@ describe('hash ast', function() {
         });
         return result;
       });
-      return deps;
+      return {name: name, deps: deps};
     }
 
-    var generators = {
-      'Identifier': [function() {
-        return {
-          type: 'Identifier',
-          name: 'foo'
-        };
-      }],
-      Literal: [function() { return {type: 'Literal', value: 40}; }],
-      VariableDeclarator: generator('VariableDeclarator', {id: 'Identifier'}),
-      VariableDeclaration: generator('VariableDeclaration', {declarations: 'list:VariableDeclarator'}, {kind: 'var'}),
-      BlockStatement: generator('BlockStatement', {body: "list:Statement"}),
-      FunctionDeclaration: generator('FunctionDeclaration', {id: "Identifier", params: "list:Identifier", body: "BlockStatement"}),
-      ArrayExpression: generator('ArrayExpression', {elements: "list:Expression"}),
-      WhileStatement: generator('WhileStatement', {test: 'Expression', body: 'BlockStatement'}),
-      BinaryExpression: generator('BinaryExpression', {left: "Expression", right: "Expression"}, {operator: '==='}),
-      ExpressionStatement: generator('ExpressionStatement', {expression: "Expression"}),
-      ThisExpression: generator('ThisExpression', {}),
-      MemberExpression: generator('MemberExpression', {object: "Expression", property: "Identifier"}),
-      CallExpression: generator('CallExpression', {callee: "Expression", arguments: "list:Expression"}),
-      AssignmentExpression: generator('AssignmentExpression', {left: "Identifier", right: "Expression"}, {operator: '='}),
-      FunctionExpression: generator('FunctionExpression', {body: "BlockStatement", params: "list:Identifier"}),
-      ObjectExpression: generator('ObjectExpression', {properties: "list:Property"}),
-      Property: generator('Property', {key: "Identifier", value: "Expression"}),
-      ReturnStatement: generator('ReturnStatement', {argument: "Expression"}),
-      ForInStatement: generator('ForInStatement', {left: "Identifier", right: "Expression", body: "BlockStatement"}),
-      ThrowStatement: generator('ThrowStatement', {argument: "Expression"}),
-      UpdateExpression: generator('UpdateExpression', {argument: 'Identifier'}, {operator: '++'}),
-      ForStatement: generator('ForStatement', {init: 'VariableDeclaration', test: 'BinaryExpression', update: 'UpdateExpression', body: 'BlockStatement'}),
-      IfStatement: generator('IfStatement', {test: 'BinaryExpression', consequent: 'BlockStatement'}),
-      UnaryExpression: generator('UnaryExpression', {argument: 'Expression'}, {operator: '+'}) 
-    };
+    var gens = [
+      generator('Identifier', {}, {name: 'foo'}),
+      generator('Literal', {}, {value: 40}),
+      generator('VariableDeclarator', {id: 'Identifier'}),
+      generator('VariableDeclaration', {declarations: 'list:VariableDeclarator'}, {kind: 'var'}),
+      generator('BlockStatement', {body: "list:Statement"}),
+      generator('FunctionDeclaration', {id: "Identifier", params: "list:Identifier", body: "BlockStatement"}),
+      generator('ArrayExpression', {elements: "list:Expression"}),
+      generator('WhileStatement', {test: 'Expression', body: 'BlockStatement'}),
+      generator('BinaryExpression', {left: "Expression", right: "Expression"}, {operator: '==='}),
+      generator('ExpressionStatement', {expression: "Expression"}),
+      generator('ThisExpression', {}),
+      generator('MemberExpression', {object: "Expression", property: "Identifier"}),
+      generator('CallExpression', {callee: "Expression", arguments: "list:Expression"}),
+      generator('AssignmentExpression', {left: "Identifier", right: "Expression"}, {operator: '='}),
+      generator('FunctionExpression', {body: "BlockStatement", params: "list:Identifier"}),
+      generator('ObjectExpression', {properties: "list:Property"}),
+      generator('Property', {key: "Identifier", value: "Expression"}),
+      generator('ReturnStatement', {argument: "Expression"}),
+      generator('ForInStatement', {left: "Identifier", right: "Expression", body: "BlockStatement"}),
+      generator('ThrowStatement', {argument: "Expression"}),
+      generator('UpdateExpression', {argument: 'Identifier'}, {operator: '++'}),
+      generator('ForStatement', {init: 'VariableDeclaration', test: 'BinaryExpression', update: 'UpdateExpression', body: 'BlockStatement'}),
+      generator('IfStatement', {test: 'BinaryExpression', consequent: 'BlockStatement'}),
+      generator('UnaryExpression', {argument: 'Expression'}, {operator: '+'}) 
+    ];
 
-    var gen = generators[type];
-    var deps = gen.slice(0, -1).map(function(category) {
+    var gen = gens.filter(function(gen) { return gen.name === type; })[0];
+    var deps = gen.deps.slice(0, -1).map(function(category) {
       var type = (nodeCategory[category] && nodeCategory[category][Math.floor(Math.random() * nodeCategory[category].length)]) || category;
       return generate(type);
     });
-    return gen[gen.length - 1].apply(null, deps);
+    return gen.deps[gen.deps.length - 1].apply(null, deps);
   }
 
 });
