@@ -1,0 +1,36 @@
+#!/usr/bin/env node
+
+var falafel = require('falafel');
+
+var content = '';
+process.stdin.resume();
+process.stdin.on('data', function(buf) { content += buf.toString(); });
+process.stdin.on('end', function() {
+  var statistics = {};
+  var props = ['argument', 'params', 'id', 'body']
+  falafel(content, function(node) {
+    statistics[node.type] = statistics[node.type] || {};
+    props.forEach(function(prop) {
+      if (node[prop]) {
+       // if (typeof node[prop] === 'string') {
+       //   var propStats = (statistics[node.type + ':' + prop] = statistics[node.type + ':' + prop] || {});
+       //   propStats[node[prop]] = propStats[node[prop]] || 0;
+       //   propStats[node[prop]]++;
+       // } else
+        if (Array.isArray(node[prop])) {
+          var propStats = (statistics[node.type][prop] = statistics[node.type][prop] || {});
+          node[prop].forEach(function(child) {
+            propStats[child.type] = propStats[child.type] || 0;
+            propStats[child.type]++;
+          });
+        } else {
+          var propStats = (statistics[node.type][prop] = statistics[node.type][prop] || {});
+          propStats[node[prop].type] = propStats[node[prop].type] || 0;
+          propStats[node[prop].type]++;
+        }
+      }
+    });
+
+  });
+  console.log(JSON.stringify(statistics));
+});

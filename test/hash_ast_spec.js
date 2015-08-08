@@ -1,6 +1,6 @@
 var expect = require('chai').expect;
-var escodegen = require('escodegen');
 var hashAst = require(__dirname + '/../hash_ast');
+var generate = require(__dirname + '/../generate');
 
 describe('hash ast', function() {
   it('should generate hash tree', function() {
@@ -50,87 +50,8 @@ describe('hash ast', function() {
   });
 
   it('ast hashed twice should be the same', function() {
-    var ast = generate('BinaryExpression');
-    var result = escodegen.generate(ast);
-    console.log(result);
+    var result = generate('WhileStatement');
 
     expect(hashAst('stdin', result)).to.deep.equal(hashAst('stdin', result));
   });
-
-  it('ast contained in other ast should contain the same children', function() {
-  });
-
-  function generate(type) {
-    var nodeCategory = {
-      'Expression': ['Literal', 'BinaryExpression', 'Identifier', 'ArrayExpression', 'ThisExpression', 'MemberExpression', 'CallExpression', 'AssignmentExpression', 'FunctionExpression', 'ObjectExpression', 'UpdateExpression', 'UnaryExpression'],
-      'Statement': ['WhileStatement', 'VariableDeclaration', 'FunctionDeclaration', 'ExpressionStatement', 'ForInStatement', 'ForStatement', 'IfStatement']
-    };
-
-    function generator(name, blueprint, extras) {
-      extras = extras || {};
-      var deps = [];
-      var props = [];
-      for (var prop in blueprint) {
-        var parts = blueprint[prop].split(':');
-        deps.push(parts[parts.length - 1]);
-        props.push({
-          collection: parts.length > 1,
-          name: prop
-        });
-      }
-      deps.push(function() {
-        var result = {};
-        var args = Array.prototype.slice.call(arguments);
-        result.type = name;
-        args.forEach(function(e, i) {
-          var prop = props[i];
-          if (prop.collection) {
-            result[prop.name] = [e];
-          } else {
-            result[prop.name] = e;
-          }
-        });
-        Object.keys(extras).forEach(function(key) {
-          result[key] = extras[key];
-        });
-        return result;
-      });
-      return {name: name, deps: deps};
-    }
-
-    var gens = [
-      generator('Identifier', {}, {name: 'foo'}),
-      generator('Literal', {}, {value: 40}),
-      generator('VariableDeclarator', {id: 'Identifier'}),
-      generator('VariableDeclaration', {declarations: 'list:VariableDeclarator'}, {kind: 'var'}),
-      generator('BlockStatement', {body: "list:Statement"}),
-      generator('FunctionDeclaration', {id: "Identifier", params: "list:Identifier", body: "BlockStatement"}),
-      generator('ArrayExpression', {elements: "list:Expression"}),
-      generator('WhileStatement', {test: 'Expression', body: 'BlockStatement'}),
-      generator('BinaryExpression', {left: "Expression", right: "Expression"}, {operator: '==='}),
-      generator('ExpressionStatement', {expression: "Expression"}),
-      generator('ThisExpression', {}),
-      generator('MemberExpression', {object: "Expression", property: "Identifier"}),
-      generator('CallExpression', {callee: "Expression", arguments: "list:Expression"}),
-      generator('AssignmentExpression', {left: "Identifier", right: "Expression"}, {operator: '='}),
-      generator('FunctionExpression', {body: "BlockStatement", params: "list:Identifier"}),
-      generator('ObjectExpression', {properties: "list:Property"}),
-      generator('Property', {key: "Identifier", value: "Expression"}),
-      generator('ReturnStatement', {argument: "Expression"}),
-      generator('ForInStatement', {left: "Identifier", right: "Expression", body: "BlockStatement"}),
-      generator('ThrowStatement', {argument: "Expression"}),
-      generator('UpdateExpression', {argument: 'Identifier'}, {operator: '++'}),
-      generator('ForStatement', {init: 'VariableDeclaration', test: 'BinaryExpression', update: 'UpdateExpression', body: 'BlockStatement'}),
-      generator('IfStatement', {test: 'BinaryExpression', consequent: 'BlockStatement'}),
-      generator('UnaryExpression', {argument: 'Expression'}, {operator: '+'}) 
-    ];
-
-    var gen = gens.filter(function(gen) { return gen.name === type; })[0];
-    var deps = gen.deps.slice(0, -1).map(function(category) {
-      var type = (nodeCategory[category] && nodeCategory[category][Math.floor(Math.random() * nodeCategory[category].length)]) || category;
-      return generate(type);
-    });
-    return gen.deps[gen.deps.length - 1].apply(null, deps);
-  }
-
 });
