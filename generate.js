@@ -1,8 +1,27 @@
 var escodegen = require('escodegen');
 
-function generate(type, rawStatistics) {
-  rawStatistics = rawStatistics || {};
+function buildCdf(stats) {
+  var result = {};
+  Object.keys(stats).forEach(function(nodeType) {
+    result[nodeType] = result[nodeType] || {};
+    Object.keys(stats[nodeType]).forEach(function(prop) {
+      result[nodeType][prop] = result[nodeType][prop] || [];
+      Object.keys(stats[nodeType][prop]).forEach(function(childType, idx) {
+        var previous = result[nodeType][prop][idx - 1];
+        var sum = (previous && previous.range[1] || 0);
+        var count = stats[nodeType][prop][childType];
+        result[nodeType][prop].push({
+          type: childType,
+          count: count,
+          range: [sum, sum + count]
+        });
+      });
+    });
+  });
+  return result;
+}
 
+function generate(type, statistics) {
   var nodeCategory = {
     'Expression': ['Literal', 'BinaryExpression', 'Identifier', 'ArrayExpression', 'ThisExpression', 'MemberExpression', 'CallExpression', 'AssignmentExpression', 'FunctionExpression', 'ObjectExpression', 'UpdateExpression', 'UnaryExpression'],
     'Statement': ['WhileStatement', 'VariableDeclaration', 'FunctionDeclaration', 'ExpressionStatement', 'ForInStatement', 'ForStatement', 'IfStatement']
@@ -68,28 +87,6 @@ function generate(type, rawStatistics) {
     generator('UnaryExpression', {argument: 'Expression'}, {operator: '+'}) 
   ];
 
-  function buildCdf(stats) {
-    var result = {};
-    Object.keys(stats).forEach(function(nodeType) {
-      result[nodeType] = result[nodeType] || {};
-      Object.keys(stats[nodeType]).forEach(function(prop) {
-        result[nodeType][prop] = result[nodeType][prop] || [];
-        Object.keys(stats[nodeType][prop]).forEach(function(childType, idx) {
-          var previous = result[nodeType][prop][idx - 1];
-          var sum = (previous && previous.range[1] || 0);
-          var count = stats[nodeType][prop][childType];
-          result[nodeType][prop].push({
-            type: childType,
-            count: count,
-            range: [sum, sum + count]
-          });
-        });
-      });
-    });
-    return result;
-  }
-
-  var statistics = buildCdf(rawStatistics);
   var gen = gens.filter(function(gen) { return gen.name === type; })[0];
   var deps = gen.props.map(function(prop) {
     var category = prop.type;
@@ -100,15 +97,17 @@ function generate(type, rawStatistics) {
       var entry = stats.filter(function(entry) {
         return entry.range[0] < idx && idx <= entry.range[1];
       })[0];
-      return generate(entry.type);
+      return generate(entry.type, statistics);
     } else {
       var childType = (nodeCategory[category] && nodeCategory[category][Math.floor(Math.random() * nodeCategory[category].length)]) || category;
-      return generate(childType);
+      return generate(childType, statistics);
     }
   });
   return gen.deps[gen.deps.length - 1].apply(null, deps);
 }
 
 module.exports = function(type, rawStatistics) {
-  return escodegen.generate(generate(type, rawStatistics));
+  rawStatistics = rawStatistics || {};
+  var statistics = buildCdf(rawStatistics);
+  return escodegen.generate(generate(type, statistics));
 };
