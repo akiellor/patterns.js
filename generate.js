@@ -88,7 +88,6 @@ var gens = [
 function generate(type, statistics) {
   var gen = gens.filter(function(gen) { return gen.name === type; })[0];
   var deps = gen.props.map(function(prop) {
-    var category = prop.type;
     var stats = statistics[type + '.' + prop.name];
     var sum = stats[stats.length - 1].range[1];
     var idx = Math.floor(Math.random() * sum) + 1;
