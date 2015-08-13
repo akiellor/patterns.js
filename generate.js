@@ -78,7 +78,7 @@ var gens = [
   generator('ForStatement', {init: 'VariableDeclaration', test: 'BinaryExpression', update: 'UpdateExpression', body: 'BlockStatement'}),
   generator('IfStatement', {test: 'BinaryExpression', consequent: 'BlockStatement'}),
   generator('UnaryExpression', {argument: 'Expression'}, {operator: '+'}),
-  generator('LogicalExpression', {left: 'Expression', right: 'Expression'}, {}),
+  generator('LogicalExpression', {left: 'Expression', right: 'Expression'}, {operator: '&&'}),
   generator('ConditionalExpression', {test: 'Expression', consequent: 'Expression'}, {}),
   generator('BreakStatement', {}, {}),
   generator('NewExpression', {callee: 'Identifier', arguments: 'list:Expression'}, {}),

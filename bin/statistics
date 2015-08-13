@@ -7,7 +7,7 @@ process.stdin.resume();
 process.stdin.on('data', function(buf) { content += buf.toString(); });
 process.stdin.on('end', function() {
   var statistics = {};
-  var props = ['argument', 'params', 'id', 'body', 'test', 'left', 'right', 'init', 'object', 'declarations', 'property', 'expression', 'callee', 'consequent', 'arguments', 'elements', 'properties', 'key', 'value']
+  var props = ['argument', 'params', 'id', 'body', 'test', 'left', 'right', 'init', 'object', 'declarations', 'property', 'expression', 'callee', 'consequent', 'arguments', 'elements', 'properties', 'key', 'value', 'expressions']
 
   function processNode(node, key, depth) {
     if (depth === 0) {
@@ -25,7 +25,7 @@ process.stdin.on('end', function() {
             processNode(child, newKey + '.' + child.type, depth - 1);
           });
         } else {
-          var propStats = (statistics[key] = statistics[key] || {});
+          var propStats = (statistics[newKey] = statistics[newKey] || {});
           propStats[node[prop].type] = propStats[node[prop].type] || 0;
           propStats[node[prop].type]++;
           processNode(node[prop], newKey + '.' + node[prop].type, depth - 1);
