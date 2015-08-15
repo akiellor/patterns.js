@@ -44,7 +44,7 @@ function sample(stats) {
   })[0];
 }
 
-function newGenerate(path, statistics, propertyModel) {
+function generate(path, statistics, propertyModel) {
   var type = path[path.length - 1];
   var props = propertyModel[type] || [];
   var deps = props.reduce(function(memo, prop) {
@@ -68,12 +68,12 @@ function newGenerate(path, statistics, propertyModel) {
       var childPath = propPath.slice(-4)
       childPath = childPath.concat([entry.type]);
       memo[prop.replace('[]', '')] = [
-        newGenerate(childPath, statistics, propertyModel)
+        generate(childPath, statistics, propertyModel)
       ];
     } else {
       var childPath = propPath.slice(-4)
       childPath = childPath.concat([entry.type]);
-      memo[prop] = newGenerate(childPath, statistics, propertyModel);
+      memo[prop] = generate(childPath, statistics, propertyModel);
     }
     return memo;
   }, {});
@@ -89,7 +89,7 @@ module.exports = function(type, rawStatistics) {
   var propertyModel = buildPropertyModel(rawStatistics || defaultStatistics);
   var statistics = buildCumulativeDistribution(rawStatistics || defaultStatistics, propertyModel);
   return escodegen.generate(
-    newGenerate([type], statistics, propertyModel),
+    generate([type], statistics, propertyModel),
     {
       parse: require('esprima').parse,
       raw: true
