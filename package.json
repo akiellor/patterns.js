@@ -13,6 +13,7 @@
   "author": "Andrew Kiellor <akiellor@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "esprima": "^2.5.0",
     "falafel": "^1.2.0",
     "glob": "^5.0.14",
     "hashset.js": "^1.1.0",
