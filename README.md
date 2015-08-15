@@ -10,9 +10,15 @@ Current state of the project simply finds duplicated code.
 
 Out of **absolute necessity**, a javascript code generator was built as part of this project, for the purpose of creating test data.
 
-To try it out:
+## To try it out
 
 ```
 npm install
 cat statistics.json | ./bin/generate
+```
+
+## To generate with more fun statistics
+
+```
+cat <(curl <url-to-your-fave-js-library>) <(curl <url-to-your-least-fave-js-library>) | ./bin/statistics | ./bin/generate
 ```
