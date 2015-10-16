@@ -1,38 +1,20 @@
 #!/usr/bin/env node
 
-var Promise = require('promise');
-var glob = Promise.denodeify(require('glob'));
-var read = Promise.denodeify(require('fs').readFile);
-var hashAst = require(__dirname + '/../hash_ast');
-var mergeResults = require(__dirname + '/../merge_results');
+var program = require('commander');
+
 var reportResults = require(__dirname + '/../report_results');
-var filterResults = require(__dirname + '/../filter_results');
+var pattern = require(__dirname + '/../');
 
-function getFileNames(patterns) {
-  return Promise.all(patterns.map(function(pattern) {
-    return glob(pattern, {})
-  })).then(function(filesOfFiles) {
-    return filesOfFiles.reduce(function(memo, files) {
-      return memo.concat(files);
-    }, []);
+program
+  .arguments('[globs...]')
+  .action(function(globs) {
+    pattern(globs)
+      .then(reportResults)
+      .then(console.log)
+      .catch(function(err) {
+        console.log(err);
+        console.log(err.stack);
+      });
   });
-}
 
-function hashFiles(files) {
-  return Promise.all(files.map(function(file) {
-    return read(file).then(function(content) {
-      return {file: file, tree: hashAst(file, content.toString())};
-    });
-  }));
-}
-
-getFileNames(process.argv.slice(2))
-.then(hashFiles)
-.then(mergeResults)
-.then(filterResults)
-.then(reportResults)
-.then(console.log)
-.catch(function(err) {
-  console.log(err);
-  console.log(err.stack);
-});
+program.parse(process.argv);
