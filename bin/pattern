@@ -5,10 +5,15 @@ var program = require('commander');
 var reportResults = require(__dirname + '/../report_results');
 var pattern = require(__dirname + '/../');
 
+function parse(v) {
+  return parseInt(v);
+}
+
 program
+  .option('-c, --characters [size]', 'Number of characters to be considered duplication', parse, 300)
   .arguments('[globs...]')
-  .action(function(globs) {
-    pattern(globs)
+  .action(function(globs, options) {
+    pattern(globs, options)
       .then(reportResults)
       .then(console.log)
       .catch(function(err) {

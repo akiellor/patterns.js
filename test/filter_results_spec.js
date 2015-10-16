@@ -16,7 +16,7 @@ describe('filter results', function() {
       '123': {
         hash: '123',
         children: [],
-        source: generateSource(500),
+        source: generateSource(11),
         locations: [
           'foo.js:1',
           'bar.js:2'
@@ -25,11 +25,11 @@ describe('filter results', function() {
       '456': {
         hash: '456',
         children: [],
-        source: generateSource(500),
+        source: generateSource(11),
         locations: ['foo.js:2']
       }
     };
-    var filtered = filterResults(input);
+    var filtered = filterResults(10, input);
     expect(filtered).to.deep.equal({
       '123': {
         hash: '123',
@@ -43,12 +43,12 @@ describe('filter results', function() {
     });
   });
 
-  it('should remove results with size less than 300 characters', function() {
+  it('should remove results with size less than n characters', function() {
     var input = {
       '123': {
         hash: '123',
         children: [],
-        source: generateSource(299),
+        source: generateSource(9),
         locations: [
           'foo.js:1',
           'bar.js:2'
@@ -57,14 +57,14 @@ describe('filter results', function() {
       '456': {
         hash: '456',
         children: [],
-        source: generateSource(300),
+        source: generateSource(10),
         locations: [
           'foo.js:1',
           'bar.js:2'
         ]
       }
     };
-    var filtered = filterResults(input);
+    var filtered = filterResults(10, input);
     expect(filtered).to.deep.equal({
       '456': {
         hash: '456',
@@ -83,7 +83,7 @@ describe('filter results', function() {
       '123': {
         hash: '123',
         children: ['456'],
-        source: generateSource(301),
+        source: generateSource(11),
         locations: [
           'foo.js:1',
           'bar.js:2'
@@ -92,14 +92,14 @@ describe('filter results', function() {
       '456': {
         hash: '456',
         children: [],
-        source: generateSource(300),
+        source: generateSource(10),
         locations: [
           'foo.js:1',
           'bar.js:2'
         ]
       }
     };
-    var filtered = filterResults(input);
+    var filtered = filterResults(10, input);
     expect(filtered).to.deep.equal({
       '123': {
         hash: '123',

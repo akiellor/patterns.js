@@ -23,9 +23,9 @@ function hashFiles(files) {
   }));
 }
 
-module.exports = function(globs) {
+module.exports = function(globs, options) {
   return getFileNames(globs)
     .then(hashFiles)
     .then(mergeResults)
-    .then(filterResults);
+    .then(filterResults.bind(null, options.characters));
 };
