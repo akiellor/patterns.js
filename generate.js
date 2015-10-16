@@ -1,4 +1,5 @@
 var escodegen = require('escodegen');
+var falafel = require('falafel');
 var defaultStatistics = require(__dirname + '/statistics.json');
 
 function buildCumulativeDistribution(stats) {
@@ -44,6 +45,28 @@ function sample(stats) {
   })[0];
 }
 
+function retry(fn) {
+  return function() {
+    var args = Array.prototype.slice.apply(arguments);
+    var i = 0;
+    var result;
+    while (i < 10) {
+      try {
+        result = fn.apply(null, args);
+        break;
+      } catch (e) {
+      }
+      i++;
+    }
+
+    if(result === undefined) {
+      throw new Error('Failed to get success for ' + fn);
+    }
+
+    return result;
+  };
+}
+
 function generate(path, statistics, propertyModel) {
   var type = path[path.length - 1];
   var props = propertyModel[type] || [];
@@ -85,14 +108,20 @@ function generate(path, statistics, propertyModel) {
   return deps;
 }
 
-module.exports = function(type, rawStatistics) {
+function validate(source) {
+  falafel(source, function() {});
+}
+
+module.exports = retry(function(type, rawStatistics) {
   var propertyModel = buildPropertyModel(rawStatistics || defaultStatistics);
   var statistics = buildCumulativeDistribution(rawStatistics || defaultStatistics, propertyModel);
-  return escodegen.generate(
+  var source = escodegen.generate(
     generate([type], statistics, propertyModel),
     {
       parse: require('esprima').parse,
       raw: true
     }
   );
-};
+  validate(source);
+  return source;
+});

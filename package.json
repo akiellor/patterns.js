@@ -13,7 +13,8 @@
   "author": "Andrew Kiellor <akiellor@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "esprima": "^2.5.0",
+    "acorn": "^2.4.0",
+    "esprima": "^2.6.0",
     "falafel": "^1.2.0",
     "glob": "^5.0.14",
     "hashset.js": "^1.1.0",
@@ -22,7 +23,7 @@
   },
   "devDependencies": {
     "chai": "^3.2.0",
-    "escodegen": "^1.6.1",
+    "escodegen": "^1.7.0",
     "jsfmt": "^0.4.1",
     "mocha": "^2.2.5"
   }
