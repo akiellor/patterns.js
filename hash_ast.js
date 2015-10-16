@@ -1,5 +1,5 @@
 var falafel = require('falafel');
-var acorn = require('acorn');
+var esprima = require('esprima');
 var hashNode = require(__dirname + '/hash_node');
 
 module.exports = function hashAst(name, source) {
@@ -8,10 +8,16 @@ module.exports = function hashAst(name, source) {
   falafel(source, {
     parser: {
       parse: function(source) {
-        return acorn.parse(source, {locations: true, raw: true, range: true, sourceType: 'module'});
+        try {
+          return esprima.parse(source, {loc: true, raw: true, range: true, sourceType: 'module'});
+        } catch (e) {
+          throw new Error('Could not parse: ' + name + ' ' + e.message);
+        }
       }
     }
   }, function(node) {
+    node.start = node.range[0];
+    node.end = node.range[1];
     var nodeSource = node.source();
     var result = hashNode(name, hashes, node);
     if (!results[result.hash]) {
