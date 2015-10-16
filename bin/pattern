@@ -10,12 +10,16 @@ function parse(v) {
 }
 
 program
+  .option('-t, --threshold [number]', 'Number of allowed duplications', parse, -1)
   .option('-c, --characters [size]', 'Number of characters to be considered duplication', parse, 300)
   .arguments('[globs...]')
   .action(function(globs, options) {
     pattern(globs, options)
-      .then(reportResults)
-      .then(console.log)
+      .then(reportResults.bind(null, options.threshold))
+      .then(function(report) {
+        console.log(report.data);
+        process.exit(report.exitCode);
+      })
       .catch(function(err) {
         console.log(err);
         console.log(err.stack);
