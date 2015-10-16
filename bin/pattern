@@ -1,15 +1,12 @@
 #!/usr/bin/env node
 
-var falafel = require('falafel');
 var Promise = require('promise');
 var glob = Promise.denodeify(require('glob'));
 var read = Promise.denodeify(require('fs').readFile);
-var hashNode = require(__dirname + '/../hash_node');
 var hashAst = require(__dirname + '/../hash_ast');
 var mergeResults = require(__dirname + '/../merge_results');
 var reportResults = require(__dirname + '/../report_results');
 var filterResults = require(__dirname + '/../filter_results');
-var Hashset = require('hashset.js');
 
 function getFileNames(patterns) {
   return Promise.all(patterns.map(function(pattern) {
@@ -27,11 +24,6 @@ function hashFiles(files) {
       return {file: file, tree: hashAst(file, content.toString())};
     });
   }));
-}
-
-function tap(value) {
-  console.log(JSON.stringify(value));
-  return value;
 }
 
 getFileNames(process.argv.slice(2))
