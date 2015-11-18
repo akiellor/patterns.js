@@ -26,6 +26,7 @@
     "promise": "^7.0.3"
   },
   "devDependencies": {
+    "generate.js": "https://github.com/akiellor/generate.js/archive/master.tar.gz",
     "chai": "^3.2.0",
     "escodegen": "^1.7.0",
     "jsfmt": "^0.4.1",

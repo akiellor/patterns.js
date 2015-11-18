@@ -1,7 +1,7 @@
 var expect = require('chai').expect;
 var falafel = require('falafel');
 var hashAst = require(__dirname + '/../hash_ast');
-var generate = require(__dirname + '/../generate');
+var generate = require('generate.js');
 
 describe('hash ast', function() {
   for (var i = 0; i < 15; i++) {
