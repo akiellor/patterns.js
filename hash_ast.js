@@ -2,7 +2,8 @@ var falafel = require('falafel');
 var esprima = require('esprima');
 var hashNode = require(__dirname + '/hash_node');
 
-module.exports = function hashAst(name, source) {
+module.exports = function hashAst(name, source, hashFunction) {
+  hashFunction = hashFunction || hashNode;
   var hashes = {};
   var results = {};
   falafel(source, {
@@ -19,13 +20,14 @@ module.exports = function hashAst(name, source) {
     node.start = node.range[0];
     node.end = node.range[1];
     var nodeSource = node.source();
-    var result = hashNode(name, hashes, node);
+    var result = hashFunction(name, hashes, node);
     if (!results[result.hash]) {
       results[result.hash] = result;
       results[result.hash].locations = [node.loc.start.line];
       results[result.hash].source = nodeSource;
     } else {
       results[result.hash].locations.push(node.loc.start.line);
+      results[result.hash].source = nodeSource;
     }
   });
   return results;
