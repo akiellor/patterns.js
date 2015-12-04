@@ -1,24 +1,11 @@
-var falafel = require('falafel');
-var esprima = require('esprima');
 var hashNode = require(__dirname + '/hash_node');
+var walk = require(__dirname + '/walk');
 
 module.exports = function hashAst(name, source, hashFunction) {
   hashFunction = hashFunction || hashNode;
   var hashes = {};
   var results = {};
-  falafel(source, {
-    parser: {
-      parse: function(source) {
-        try {
-          return esprima.parse(source, {loc: true, raw: true, range: true, sourceType: 'module'});
-        } catch (e) {
-          throw new Error('Could not parse: ' + name + ' ' + e.message);
-        }
-      }
-    }
-  }, function(node) {
-    node.start = node.range[0];
-    node.end = node.range[1];
+  walk(source, function(node) {
     var nodeSource = node.source();
     var result = hashFunction(name, hashes, node);
     if (!results[result.hash]) {
