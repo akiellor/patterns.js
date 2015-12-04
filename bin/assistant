@@ -58,7 +58,7 @@ function detectInterpolationCandidates(nodesChan) {
         return;
       }
 
-      if (node.type === 'BinaryExpression' && node.operator === '+' && (node.left.type === 'BinaryExpression' || (node.left.type === 'Literal' && typeof node.left.value === 'string'))) {
+      if ((node.parent && node.parent.type !== 'BinaryExpression') && node.type === 'BinaryExpression' && node.operator === '+' && (node.left.type === 'BinaryExpression' || (node.left.type === 'Literal' && typeof node.left.value === 'string'))) {
         yield csp.put(result, node.source());
       }
     }
