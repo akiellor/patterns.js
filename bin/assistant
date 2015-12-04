@@ -1,0 +1,87 @@
+#!/usr/bin/env babel-node --harmony
+
+import csp from 'js-csp';
+import glob from 'glob';
+import walk from '../walk.js';
+
+function files() {
+  const result = csp.chan();
+  glob('walk.js', function(err, files) {
+    csp.operations.onto(result, files);
+  });
+  return result;
+}
+
+function print(chan) {
+  csp.go(function*() {
+    while (true) {
+      let val = yield csp.take(chan);
+      if (val === csp.CLOSED) {
+        return;
+      }
+      console.log(val);
+    }
+  });
+}
+
+function traverse(chan) {
+  var result = csp.chan();
+  csp.go(function*() {
+    while (true) {
+      let filename = yield csp.take(chan);
+      if (filename === csp.CLOSED) {
+        result.close();
+        return;
+      }
+      let content = yield read(filename);
+      var puts = [];
+      walk(content, function(node) {
+        puts.push(csp.go(function*() {
+          yield csp.put(result, node);
+        }));
+      });
+      for (let put of puts) {
+        yield put;
+      }
+    }
+  });
+  return result; 
+}
+
+function detectInterpolationCandidates(nodesChan) {
+  var result = csp.chan();
+  csp.go(function*() {
+    while (true) {
+      var node = yield csp.take(nodesChan);
+      if (node === csp.CLOSED) {
+        result.close();
+        return;
+      }
+
+      if (node.type === 'BinaryExpression' && node.operator === '+' && (node.left.type === 'BinaryExpression' || (node.left.type === 'Literal' && typeof node.left.value === 'string'))) {
+        yield csp.put(result, node.source());
+      }
+    }
+  });
+  return result;
+}
+
+function read(filename) {
+  const result = csp.chan();
+  require('fs').readFile(filename, function(err, buffer) {
+    csp.go(function*() {
+      yield csp.put(result, buffer.toString());
+    });
+  });
+  return result;
+}
+
+var nodes = traverse(files());
+
+var nodesMult = csp.operations.mult(nodes);
+
+var detectInterpolationCandidatesNodes = csp.chan();
+
+csp.operations.mult.tap(nodesMult, detectInterpolationCandidatesNodes);
+
+print(detectInterpolationCandidates(detectInterpolationCandidatesNodes));
