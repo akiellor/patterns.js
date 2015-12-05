@@ -80,8 +80,18 @@ var nodes = traverse(files());
 
 var nodesMult = csp.operations.mult(nodes);
 
-var detectInterpolationCandidatesNodes = csp.chan();
+const detectors = [
+  detectInterpolationCandidates
+];
 
-csp.operations.mult.tap(nodesMult, detectInterpolationCandidatesNodes);
+const actions = csp.chan();
 
-print(detectInterpolationCandidates(detectInterpolationCandidatesNodes));
+detectors.forEach(function(detector) {
+  var detectorNodes = csp.chan();
+
+  csp.operations.mult.tap(nodesMult, detectorNodes);
+
+  csp.operations.pipe(detector(detectorNodes), actions, true);
+});
+
+print(actions);
