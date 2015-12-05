@@ -3,10 +3,13 @@
 import csp from 'js-csp';
 import glob from 'glob';
 import walk from '../walk.js';
+import hashNode from '../hash_node.js';
+import mergeResults from '../merge_results.js';
+import filterResults from '../filter_results.js';
 
 function files() {
   const result = csp.chan();
-  glob('walk.js', function(err, files) {
+  glob('*.js', function(err, files) {
     csp.operations.onto(result, files);
   });
   return result;
@@ -37,6 +40,7 @@ function traverse(chan) {
       var puts = [];
       walk(content, function(node) {
         puts.push(csp.go(function*() {
+          node.file = filename;
           yield csp.put(result, node);
         }));
       });
@@ -66,6 +70,42 @@ function detectInterpolationCandidates(nodesChan) {
   return result;
 }
 
+function detectDuplications(nodesChan) {
+  var resultChan = csp.chan();
+  csp.go(function*() {
+    const results = {};
+    const hashes = {};
+    while (true) {
+      var node = yield csp.take(nodesChan);
+      if (node === csp.CLOSED) {
+        const mergableResults = Object.keys(results).map(function(filename) {
+          return {file: filename, tree: results[filename]};
+        })
+        let duplications = filterResults(300, mergeResults(mergableResults));
+        for (let duplicationHash in duplications) {
+          yield csp.put(resultChan, duplications[duplicationHash]);
+        }
+        resultChan.close();
+        return;
+      }
+
+      var nodeSource = node.source();
+      var result = hashNode(node.file, hashes, node);
+      results[node.file] = results[node.file] || {};
+      if (!results[node.file][result.hash]) {
+        results[node.file][result.hash] = result;
+        results[node.file][result.hash].file = node.file;
+        results[node.file][result.hash].locations = [node.loc.start.line];
+        results[node.file][result.hash].source = nodeSource;
+      } else {
+        results[node.file][result.hash].locations.push(node.loc.start.line);
+        results[node.file][result.hash].source = nodeSource;
+      }
+    }
+  });
+  return resultChan;
+}
+
 function read(filename) {
   const result = csp.chan();
   require('fs').readFile(filename, function(err, buffer) {
@@ -81,7 +121,8 @@ var nodes = traverse(files());
 var nodesMult = csp.operations.mult(nodes);
 
 const detectors = [
-  detectInterpolationCandidates
+  detectInterpolationCandidates,
+  detectDuplications
 ];
 
 const actions = csp.chan();
