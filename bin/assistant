@@ -2,13 +2,12 @@
 
 import csp from 'js-csp';
 import glob from 'glob';
-import inquirer from 'inquirer';
 import walk from '../walk.js';
 import hashNode from '../hash_node.js';
 import mergeResults from '../merge_results.js';
 import filterResults from '../filter_results.js';
 import { editor } from '../editor.js';
-import * as defaultActions from '../lib/assistant/actions.js';
+import { ui } from '../lib/assistant/ui.js'
 
 function files(pattern) {
   const result = csp.chan();
@@ -139,42 +138,6 @@ function read(filename) {
     });
   });
   return result;
-}
-
-function prompt(questions) {
-  var result = csp.chan();
-  inquirer.prompt(questions, function(answers) {
-    csp.go(function*() {
-      yield csp.put(result, answers);
-    });
-  });
-  return result;
-}
-
-function ui(chan) {
-  csp.go(function*() {
-    while (true) {
-      let refactor = yield csp.take(chan);
-      if (refactor === csp.CLOSED) {
-        return;
-      }
-
-      if (refactor.context) {
-        console.log(refactor.context);
-      }
-      var answers = yield prompt({
-        type: "list",
-        name: "action",
-        message: refactor.name,
-        choices: Object.keys(refactor.options).concat(['skip', 'quit'])
-      });
-
-      const options = Object.assign({}, refactor.options, defaultActions);
-      const action = options[answers.action];
-
-      yield csp.take(action());
-    }
-  });
 }
 
 var nodes = traverse(files(process.argv[2] || '*.js'));
