@@ -8,6 +8,7 @@ import hashNode from '../hash_node.js';
 import mergeResults from '../merge_results.js';
 import filterResults from '../filter_results.js';
 import { editor } from '../editor.js';
+import * as defaultActions from '../lib/assistant/actions.js';
 
 function files(pattern) {
   const result = csp.chan();
@@ -150,20 +151,7 @@ function prompt(questions) {
   return result;
 }
 
-function skip() {
-  return csp.operations.fromColl([true]);
-}
-
-function quit() {
-  process.exit();
-}
-
 function ui(chan) {
-  const defaultActions = {
-    skip: skip,
-    quit: quit
-  };
-
   csp.go(function*() {
     while (true) {
       let refactor = yield csp.take(chan);
