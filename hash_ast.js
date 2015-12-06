@@ -1,13 +1,12 @@
 var hashNode = require(__dirname + '/hash_node');
 var walk = require(__dirname + '/walk');
 
-module.exports = function hashAst(name, source, hashFunction) {
-  hashFunction = hashFunction || hashNode;
+module.exports = function hashAst(name, source) {
   var hashes = {};
   var results = {};
   walk(source, function(node) {
     var nodeSource = node.source();
-    var result = hashFunction(name, hashes, node);
+    var result = hashNode(name, hashes, node);
     if (!results[result.hash]) {
       results[result.hash] = result;
       results[result.hash].locations = [node.loc.start.line];
