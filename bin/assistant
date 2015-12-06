@@ -5,9 +5,9 @@ import glob from 'glob';
 import hashNode from '../hash_node.js';
 import mergeResults from '../merge_results.js';
 import filterResults from '../filter_results.js';
-import { editor } from '../editor.js';
 import { ui } from '../lib/assistant/ui.js';
 import { traverse } from '../lib/traverse.js';
+import { edit } from '../lib/assistant/actions.js';
 
 function files(pattern) {
   const result = csp.chan();
@@ -15,24 +15,6 @@ function files(pattern) {
     csp.operations.onto(result, files);
   });
   return result;
-}
-
-function print(chan) {
-  csp.go(function*() {
-    while (true) {
-      let val = yield csp.take(chan);
-      if (val === csp.CLOSED) {
-        return;
-      }
-      console.log(val);
-    }
-  });
-}
-
-function edit(file, lineNumber) {
-  return function() {
-    return editor(file, lineNumber);
-  };
 }
 
 function detectInterpolationCandidates(nodesChan) {
