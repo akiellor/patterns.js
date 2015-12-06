@@ -2,8 +2,8 @@
 
 import csp from 'js-csp';
 import glob from 'glob';
-import { ui } from '../lib/assistant/ui.js';
-import { traverse } from '../lib/traverse.js';
+import ui from '../lib/assistant/ui.js';
+import traverse from '../lib/traverse.js';
 import detectInterpolationCandidates from '../lib/detect_interpolation_candidates.js';
 import detectDuplications from '../lib/detect_duplications.js';
 
