@@ -9,9 +9,9 @@ import mergeResults from '../merge_results.js';
 import filterResults from '../filter_results.js';
 import { editor } from '../editor.js';
 
-function files() {
+function files(pattern) {
   const result = csp.chan();
-  glob('*.js', function(err, files) {
+  glob(pattern, function(err, files) {
     csp.operations.onto(result, files);
   });
   return result;
@@ -30,7 +30,7 @@ function print(chan) {
 }
 
 function traverse(chan) {
-  var result = csp.chan();
+  var result = csp.chan(300000);
   csp.go(function*() {
     while (true) {
       let filename = yield csp.take(chan);
@@ -73,6 +73,7 @@ function detectInterpolationCandidates(nodesChan) {
       if ((node.parent && node.parent.type !== 'BinaryExpression') && node.type === 'BinaryExpression' && node.operator === '+' && (node.left.type === 'BinaryExpression' || (node.left.type === 'Literal' && typeof node.left.value === 'string'))) {
         var refactor = {
           name: 'interpolation-candidate',
+          context: node.source(),
           options: {
             edit: edit(node.file, node.loc.start.line)
           }
@@ -101,6 +102,7 @@ function detectDuplications(nodesChan) {
           let [file, lineNumber] = duplication.locations[0].split(':');
           var refactor = {
             name: 'duplication',
+            context: duplication.source,
             options: {
               edit: edit(file, lineNumber)
             }
@@ -138,25 +140,6 @@ function read(filename) {
   return result;
 }
 
-var nodes = traverse(files());
-
-var nodesMult = csp.operations.mult(nodes);
-
-const detectors = [
-  detectInterpolationCandidates,
-  detectDuplications
-];
-
-const actions = csp.chan();
-
-detectors.forEach(function(detector) {
-  var detectorNodes = csp.chan();
-
-  csp.operations.mult.tap(nodesMult, detectorNodes);
-
-  csp.operations.pipe(detector(detectorNodes), actions, true);
-});
-
 function prompt(questions) {
   var result = csp.chan();
   inquirer.prompt(questions, function(answers) {
@@ -179,6 +162,9 @@ function ui(chan) {
         return;
       }
 
+      if (refactor.context) {
+        console.log(refactor.context);
+      }
       var answers = yield prompt({
         type: "list",
         name: "action",
@@ -192,5 +178,24 @@ function ui(chan) {
     }
   });
 }
+
+var nodes = traverse(files(process.argv[2] || '*.js'));
+
+var nodesMult = csp.operations.mult(nodes);
+
+const detectors = [
+  detectInterpolationCandidates,
+  detectDuplications
+];
+
+const actions = csp.chan();
+
+detectors.forEach(function(detector) {
+  var detectorNodes = csp.chan();
+
+  csp.operations.mult.tap(nodesMult, detectorNodes);
+
+  csp.operations.pipe(detector(detectorNodes), actions, true);
+});
 
 ui(actions);
