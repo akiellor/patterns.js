@@ -2,10 +2,12 @@
 
 import csp from 'js-csp';
 import glob from 'glob';
+import inquirer from 'inquirer';
 import walk from '../walk.js';
 import hashNode from '../hash_node.js';
 import mergeResults from '../merge_results.js';
 import filterResults from '../filter_results.js';
+import { editor } from '../editor.js';
 
 function files() {
   const result = csp.chan();
@@ -52,6 +54,12 @@ function traverse(chan) {
   return result; 
 }
 
+function edit(file) {
+  return function() {
+    return editor(file);
+  };
+}
+
 function detectInterpolationCandidates(nodesChan) {
   var result = csp.chan();
   csp.go(function*() {
@@ -63,7 +71,13 @@ function detectInterpolationCandidates(nodesChan) {
       }
 
       if ((node.parent && node.parent.type !== 'BinaryExpression') && node.type === 'BinaryExpression' && node.operator === '+' && (node.left.type === 'BinaryExpression' || (node.left.type === 'Literal' && typeof node.left.value === 'string'))) {
-        yield csp.put(result, node.source());
+        var refactor = {
+          name: 'interpolation-candidate',
+          options: {
+            edit: edit(node.file)
+          }
+        };
+        yield csp.put(result, refactor);
       }
     }
   });
@@ -83,7 +97,13 @@ function detectDuplications(nodesChan) {
         })
         let duplications = filterResults(300, mergeResults(mergableResults));
         for (let duplicationHash in duplications) {
-          yield csp.put(resultChan, duplications[duplicationHash]);
+          var refactor = {
+            name: 'duplication',
+            options: {
+              edit: edit(duplications[duplicationHash].file)
+            }
+          };
+          yield csp.put(resultChan, refactor);
         }
         resultChan.close();
         return;
@@ -135,4 +155,34 @@ detectors.forEach(function(detector) {
   csp.operations.pipe(detector(detectorNodes), actions, true);
 });
 
-print(actions);
+function prompt(questions) {
+  var result = csp.chan();
+  inquirer.prompt(questions, function(answers) {
+    csp.go(function*() {
+      yield csp.put(result, answers);
+    });
+  });
+  return result;
+}
+
+function ui(chan) {
+  csp.go(function*() {
+    while (true) {
+      let refactor = yield csp.take(chan);
+      if (refactor === csp.CLOSED) {
+        return;
+      }
+
+      var answers = yield prompt({
+        type: "list",
+        name: "action",
+        message: refactor.name,
+        choices: Object.keys(refactor.options)
+      });
+
+      yield csp.take(refactor.options[answers.action]());
+    }
+  });
+}
+
+ui(actions);
