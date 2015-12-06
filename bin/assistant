@@ -1,19 +1,11 @@
 #!/usr/bin/env babel-node --harmony
 
 import csp from 'js-csp';
-import glob from 'glob';
+import files from '../lib/files.js';
 import ui from '../lib/assistant/ui.js';
 import traverse from '../lib/traverse.js';
 import detectInterpolationCandidates from '../lib/detect_interpolation_candidates.js';
 import detectDuplications from '../lib/detect_duplications.js';
-
-function files(pattern) {
-  const result = csp.chan();
-  glob(pattern, function(err, files) {
-    csp.operations.onto(result, files);
-  });
-  return result;
-}
 
 var nodes = traverse(files(process.argv[2] || '*.js'));
 
