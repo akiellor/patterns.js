@@ -154,7 +154,16 @@ function skip() {
   return csp.operations.fromColl([true]);
 }
 
+function quit() {
+  process.exit();
+}
+
 function ui(chan) {
+  const defaultActions = {
+    skip: skip,
+    quit: quit
+  };
+
   csp.go(function*() {
     while (true) {
       let refactor = yield csp.take(chan);
@@ -169,10 +178,11 @@ function ui(chan) {
         type: "list",
         name: "action",
         message: refactor.name,
-        choices: Object.keys(refactor.options).concat(['skip'])
+        choices: Object.keys(refactor.options).concat(['skip', 'quit'])
       });
 
-      const action = refactor.options[answers.action] || skip;
+      const options = Object.assign({}, refactor.options, defaultActions);
+      const action = options[answers.action];
 
       yield csp.take(action());
     }
