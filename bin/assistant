@@ -54,9 +54,9 @@ function traverse(chan) {
   return result; 
 }
 
-function edit(file) {
+function edit(file, lineNumber) {
   return function() {
-    return editor(file);
+    return editor(file, lineNumber);
   };
 }
 
@@ -74,7 +74,7 @@ function detectInterpolationCandidates(nodesChan) {
         var refactor = {
           name: 'interpolation-candidate',
           options: {
-            edit: edit(node.file)
+            edit: edit(node.file, node.loc.start.line)
           }
         };
         yield csp.put(result, refactor);
@@ -95,12 +95,14 @@ function detectDuplications(nodesChan) {
         const mergableResults = Object.keys(results).map(function(filename) {
           return {file: filename, tree: results[filename]};
         })
-        let duplications = filterResults(300, mergeResults(mergableResults));
+        let duplications = filterResults(100, mergeResults(mergableResults));
         for (let duplicationHash in duplications) {
+          let duplication = duplications[duplicationHash];
+          let [file, lineNumber] = duplication.locations[0].split(':');
           var refactor = {
             name: 'duplication',
             options: {
-              edit: edit(duplications[duplicationHash].file)
+              edit: edit(file, lineNumber)
             }
           };
           yield csp.put(resultChan, refactor);
@@ -165,6 +167,10 @@ function prompt(questions) {
   return result;
 }
 
+function skip() {
+  return csp.operations.fromColl([true]);
+}
+
 function ui(chan) {
   csp.go(function*() {
     while (true) {
@@ -177,10 +183,12 @@ function ui(chan) {
         type: "list",
         name: "action",
         message: refactor.name,
-        choices: Object.keys(refactor.options)
+        choices: Object.keys(refactor.options).concat(['skip'])
       });
 
-      yield csp.take(refactor.options[answers.action]());
+      const action = refactor.options[answers.action] || skip;
+
+      yield csp.take(action());
     }
   });
 }
