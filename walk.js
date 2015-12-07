@@ -1,17 +1,9 @@
-var esprima = require('esprima');
 var falafel = require('falafel');
+var parser = require('./parser.js');
 
 function walk(source, cb) {
   falafel(source, {
-    parser: {
-      parse: function(source) {
-        try {
-          return esprima.parse(source, {loc: true, raw: true, range: true, sourceType: 'module'});
-        } catch (e) {
-          throw new Error('Could not parse: ' + name + ' ' + e.message);
-        }
-      }
-    }
+    parser: parser
   }, function(node) {
     node.start = node.range[0];
     node.end = node.range[1];
