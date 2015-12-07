@@ -17,7 +17,8 @@
   "author": "Andrew Kiellor <akiellor@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "babel-cli": "^6.3.15",
+    "babel-register": "^6.3.13",
+    "babel-polyfill": "^6.3.14",
     "babel-preset-es2015": "^6.3.13",
     "commander": "^2.9.0",
     "escodegen": "^1.7.1",
@@ -31,7 +32,6 @@
     "promise": "^7.0.3"
   },
   "devDependencies": {
-    "babel-register": "^6.3.13",
     "chai": "^3.2.0",
     "generate.js": "https://github.com/akiellor/generate.js/archive/master.tar.gz",
     "jsfmt": "^0.4.1",
