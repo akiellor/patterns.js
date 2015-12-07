@@ -1,4 +1,4 @@
-#!/usr/bin/env babel-node --harmony
+#!/usr/bin/env babel-node --presets es2015 --harmony
 
 import csp from 'js-csp';
 import files from '../lib/files.js';
