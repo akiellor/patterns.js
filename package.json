@@ -7,7 +7,8 @@
     "test": "mocha --compilers js:babel-register test"
   },
   "bin": {
-    "patterns": "./bin/patterns"
+    "patterns": "./bin/patterns",
+    "patterns-assistant": "./bin/assistant"
   },
   "keywords": [
     "ast",
