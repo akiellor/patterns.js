@@ -17,7 +17,8 @@ const expect = chai.expect;
   ['prefix + ":" + node.type + ":" + node.start + ":" + node.end',
    '`${ prefix }:${ node.type }:${ node.start }:${ node.end }`'],
   ['"Could not parse: " + name + " " + e.message',
-   '`Could not parse: ${ name } ${ e.message }`']
+   '`Could not parse: ${ name } ${ e.message }`'],
+  ['a + b + c', '`${ a }${ b }${ c }`']
 ].forEach(function(expectation) {
   const [ input, output ] = expectation;
   const expression = parser.parse(input).body[0].expression;
