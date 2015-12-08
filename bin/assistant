@@ -1,9 +1,9 @@
 #!/usr/bin/env node --harmony
 
-require("babel-polyfill");
 require("babel-register")({
   presets: ['es2015'],
-  ignore: false
+  ignore: /node_modules/,
 });
+require("babel-polyfill");
 
 require('../lib/assistant-main.js');
